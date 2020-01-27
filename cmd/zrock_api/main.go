@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"net/http"
+
+	"github.com/bopoh24/zrock_go/internal/app/zrock_api"
+)
 
 func main() {
-	fmt.Print("Hello")
+	srv := zrock_api.NewServer()
+	http.ListenAndServe(":8080", srv)
 }
