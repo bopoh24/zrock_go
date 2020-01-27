@@ -1,4 +1,4 @@
-package zrock_api
+package zrockapi
 
 import (
 	"io"
@@ -13,16 +13,16 @@ import (
 type Server struct {
 	router *mux.Router
 	logger *logrus.Logger
+	config *Config
 }
 
 // NewServer returs server instance
-func NewServer() *Server {
+func NewServer(config *Config) *Server {
 	srv := &Server{
 		router: mux.NewRouter(),
 		logger: logrus.New(),
 	}
 	srv.configureRouter()
-	srv.logger.Info("Server initialized")
 	return srv
 }
 

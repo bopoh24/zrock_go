@@ -1,3 +1,9 @@
+# ZROCK REST API 
+
+### Social Platform for Musicians
+
+
+
 ## Migrations
 
 https://github.com/golang-migrate/migrate
