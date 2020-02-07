@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"golang.org/x/crypto/bcrypt"
 
 	validation "github.com/go-ozzo/ozzo-validation/v3"
@@ -9,16 +11,16 @@ import (
 
 // User model
 type User struct {
-	ID                int    `json:"id"`
-	Email             string `json:"email"`
-	Password          string `json:"password,omitempty"`
-	EncryptedPassword string `json:"-"`
-	Nick              string `json:"nick"`
-	FirstName         string `json:"first_name"`
-	LastName          string `json:"last_name,omitempty"`
-	Avatar            string `json:"avatar,omitempty"`
-	LastLogin         string `json:"last_login"`
-	Created           string `json:"created"`
+	ID                int        `json:"id"`
+	Email             string     `json:"email"`
+	Password          string     `json:"password,omitempty"`
+	EncryptedPassword string     `json:"-"`
+	Nick              string     `json:"nick"`
+	FirstName         string     `json:"first_name"`
+	LastName          string     `json:"last_name,omitempty"`
+	Avatar            string     `json:"avatar,omitempty"`
+	LastLogin         *time.Time `json:"last_login"`
+	Created           string     `json:"created"`
 }
 
 // BeforeCreate before user model create
