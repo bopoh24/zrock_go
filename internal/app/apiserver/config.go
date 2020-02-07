@@ -1,4 +1,4 @@
-package zrockapi
+package apiserver
 
 import (
 	"log"

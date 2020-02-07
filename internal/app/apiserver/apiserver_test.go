@@ -1,4 +1,4 @@
-package zrockapi
+package apiserver
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -10,8 +10,7 @@ import (
 func TestServer_handleHome(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/", nil)
-	config := NewConfig()
-	srv := NewServer(config)
+	srv := NewServer(NewConfig())
 	srv.ServeHTTP(rec, req)
 	assert.Equal(t, rec.Code, http.StatusOK)
 	assert.Equal(t, rec.Body.String(), "Welcome to ZROCK API Server")

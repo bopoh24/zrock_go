@@ -1,4 +1,4 @@
-package zrockapi
+package apiserver
 
 import (
 	"io"
@@ -22,7 +22,11 @@ func NewServer(config *Config) *Server {
 		router: mux.NewRouter(),
 		logger: logrus.New(),
 	}
+	if level, err := logrus.ParseLevel(config.LogLevel); err == nil {
+		srv.logger.SetLevel(level)
+	}
 	srv.configureRouter()
+	srv.logger.Infof("Server started at %s ... ", config.BindAdd)
 	return srv
 }
 
