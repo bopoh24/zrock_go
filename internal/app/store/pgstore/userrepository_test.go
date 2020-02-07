@@ -14,6 +14,13 @@ func TestUserRepository_Create(t *testing.T) {
 	s := New(db)
 	user := model.UserFixture()
 	assert.NoError(t, s.User().Create(user))
+	// creating user with exists email
+	user = model.UserFixture()
+	assert.Equal(t, store.ErrEmailExists, s.User().Create(user))
+
+	// creating user with exists тшслтфьу
+	user.Email = "new@email.org"
+	assert.Equal(t, store.ErrNicknameExists, s.User().Create(user))
 }
 
 func TestUserRepository_FindByPk(t *testing.T) {
@@ -32,34 +39,28 @@ func TestUserRepository_FindByPk(t *testing.T) {
 	assert.NotNil(t, user)
 }
 
-func TestUserRepository_FindByEmail(t *testing.T) {
+func TestUserRepository_FindByEmailOrNick(t *testing.T) {
 	db, teardown := TestDB(t, databaseURL)
 	defer teardown("users")
 	s := New(db)
 	email := "user@example.org"
-	user, err := s.User().FindByEmail(email)
+	user, err := s.User().FindByEmailOrNick(email)
 	assert.EqualError(t, err, store.ErrRecordNotFound.Error())
 	assert.Nil(t, user)
 	uFixture := model.UserFixture()
 	uFixture.Email = email
 	s.User().Create(uFixture)
-	user, err = s.User().FindByEmail(email)
+	user, err = s.User().FindByEmailOrNick(email)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-}
 
-func TestUserRepository_FindByNick(t *testing.T) {
-	db, teardown := TestDB(t, databaseURL)
-	defer teardown("users")
-	s := New(db)
-	nick := "cool_hacker"
-	user, err := s.User().FindByNick(nick)
+	uFixture.Email = "user@example2.org"
+	uFixture.Nickname = "hacker"
+	s.User().Create(uFixture)
+	user, err = s.User().FindByEmailOrNick("some_nick")
 	assert.EqualError(t, err, store.ErrRecordNotFound.Error())
 	assert.Nil(t, user)
-	uFixture := model.UserFixture()
-	uFixture.Nick = nick
-	s.User().Create(uFixture)
-	user, err = s.User().FindByNick(nick)
+	user, err = s.User().FindByEmailOrNick(uFixture.Nickname)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 }

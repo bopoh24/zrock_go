@@ -12,6 +12,14 @@ func TestUserRepository_Create(t *testing.T) {
 	s := New()
 	user := model.UserFixture()
 	assert.NoError(t, s.User().Create(user))
+
+	// creating user with exists email
+	assert.Equal(t, store.ErrEmailExists, s.User().Create(user))
+
+	// creating user with exists nickname
+	user = model.UserFixture()
+	user.Email = "new@email.org"
+	assert.Equal(t, store.ErrNicknameExists, s.User().Create(user))
 }
 
 func TestUserRepository_FindByPk(t *testing.T) {
@@ -26,28 +34,26 @@ func TestUserRepository_FindByPk(t *testing.T) {
 	assert.NotNil(t, user)
 }
 
-func TestUserRepository_FindByEmail(t *testing.T) {
+func TestUserRepository_FindByEmailOrNick(t *testing.T) {
 	email := "user@example.org"
 	s := New()
-	user, err := s.User().FindByEmail(email)
+	user, err := s.User().FindByEmailOrNick(email)
 	assert.EqualError(t, err, store.ErrRecordNotFound.Error())
 	assert.Nil(t, user)
-	s.User().Create(model.UserFixture())
-	user, err = s.User().FindByEmail(email)
+	u := model.UserFixture()
+	u.Email = email
+	s.User().Create(u)
+	user, err = s.User().FindByEmailOrNick(email)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-}
 
-func TestUserRepository_FindByNick(t *testing.T) {
-	nick := "hacker"
-	s := New()
-	user, err := s.User().FindByNick(nick)
+	u.Email = "user@example2.org"
+	u.Nickname = "hacker"
+	s.User().Create(u)
+	user, err = s.User().FindByEmailOrNick("some_nick")
 	assert.EqualError(t, err, store.ErrRecordNotFound.Error())
 	assert.Nil(t, user)
-	userModel := model.UserFixture()
-	userModel.Nick = nick
-	s.User().Create(userModel)
-	user, err = s.User().FindByNick(nick)
+	user, err = s.User().FindByEmailOrNick(u.Nickname)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 }

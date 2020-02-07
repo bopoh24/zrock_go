@@ -4,7 +4,7 @@ package model
 func UserFixture() *User {
 	return &User{
 		Email:     "user@example.org",
-		Nick:      "nick",
+		Nickname:  "nick",
 		FirstName: "FirstName",
 		LastName:  "LastName",
 		Password:  "Password1",

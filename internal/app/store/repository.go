@@ -6,6 +6,5 @@ import "github.com/bopoh24/zrock_go/internal/app/model"
 type UserRepository interface {
 	Create(*model.User) error
 	FindByPk(int) (*model.User, error)
-	FindByEmail(string) (*model.User, error)
-	FindByNick(string) (*model.User, error)
+	FindByEmailOrNick(string) (*model.User, error)
 }

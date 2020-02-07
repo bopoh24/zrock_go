@@ -15,12 +15,12 @@ type User struct {
 	Email             string     `json:"email"`
 	Password          string     `json:"password,omitempty"`
 	EncryptedPassword string     `json:"-"`
-	Nick              string     `json:"nick"`
+	Nickname          string     `json:"nickname"`
 	FirstName         string     `json:"first_name"`
 	LastName          string     `json:"last_name,omitempty"`
 	Avatar            string     `json:"avatar,omitempty"`
-	LastLogin         *time.Time `json:"last_login"`
-	Created           string     `json:"created"`
+	LastLogin         *time.Time `json:"last_login,omitempty"`
+	Created           *time.Time `json:"created,omitempty"`
 }
 
 // BeforeCreate before user model create
@@ -39,7 +39,7 @@ func (u *User) BeforeCreate() error {
 func (u *User) Validate() error {
 	return validation.ValidateStruct(u,
 		validation.Field(&u.Email, validation.Required, is.Email),
-		validation.Field(&u.Nick, validation.Required, validation.Length(3, 32)),
+		validation.Field(&u.Nickname, validation.Required, validation.Length(3, 32)),
 		validation.Field(&u.FirstName, validation.Required, validation.Length(2, 32)),
 		validation.Field(&u.Password, validation.By(requiredIf(u.EncryptedPassword == "")), validation.Length(6, 40)))
 }
@@ -47,6 +47,11 @@ func (u *User) Validate() error {
 // ComparePassword checks if user password is correct
 func (u *User) ComparePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.EncryptedPassword), []byte(password)) == nil
+}
+
+// Sanitize clears all restricted data
+func (u *User) Sanitize() {
+	u.Password = ""
 }
 
 func encryptString(password string) (string, error) {

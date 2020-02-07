@@ -75,7 +75,7 @@ func TestUser_Validate(t *testing.T) {
 			name: "no nick",
 			u: func() *User {
 				u := UserFixture()
-				u.Nick = ""
+				u.Nickname = ""
 				return u
 			},
 			isValid: false,

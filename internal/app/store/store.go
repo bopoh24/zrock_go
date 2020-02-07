@@ -1,6 +1,6 @@
 package store
 
-// Store interface
-type Store interface {
+// IfaceStore interface
+type IfaceStore interface {
 	User() UserRepository
 }
