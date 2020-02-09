@@ -1,11 +1,15 @@
 package apiserver
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/bopoh24/zrock_go/internal/app/model"
+	"github.com/bopoh24/zrock_go/internal/app/settings"
 	"github.com/bopoh24/zrock_go/internal/app/store"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -17,21 +21,24 @@ type Server struct {
 	router *mux.Router
 	store  store.IfaceStore
 	logger *logrus.Logger
-	config *Config
 }
 
+const (
+	contextKeyUserID = "user_id"
+)
+
 // NewServer returs server instance
-func NewServer(config *Config, store store.IfaceStore) *Server {
+func NewServer(store store.IfaceStore) *Server {
 	srv := &Server{
 		router: mux.NewRouter(),
 		logger: logrus.New(),
 		store:  store,
 	}
-	if level, err := logrus.ParseLevel(config.LogLevel); err == nil {
+	if level, err := logrus.ParseLevel(settings.App.LogLevel); err == nil {
 		srv.logger.SetLevel(level)
 	}
 	srv.configureRouter()
-	srv.logger.Infof("Server started at %s ... ", config.BindAdd)
+	srv.logger.Infof("Server started at %s ...", settings.App.BindAdd)
 	return srv
 }
 
@@ -39,10 +46,14 @@ func (s *Server) configureRouter() {
 	//allow CORS
 	s.router.Use(handlers.CORS(handlers.AllowedOrigins([]string{"*"})))
 	s.router.HandleFunc("/", s.handleHome()).Methods(http.MethodGet)
-	s.router.HandleFunc("/register", s.handleRegister()).Methods(http.MethodPost)
-	s.router.HandleFunc("/login", s.handleLogin()).Methods(http.MethodPost)
-	s.router.HandleFunc("/private", s.handlePrivate()).Methods(http.MethodGet)
+	authRoutes := s.router.PathPrefix("/api/auth").Subrouter()
+	authRoutes.HandleFunc("/login", s.handleLogin()).Methods(http.MethodPost)
+	authRoutes.HandleFunc("/register", s.handleRegister()).Methods(http.MethodPost)
 
+	// auth required urls
+	api := s.router.PathPrefix("/api").Subrouter()
+	api.Use(s.authRequiredJWT)
+	api.HandleFunc("/private", s.handlePrivate()).Methods(http.MethodGet)
 }
 
 func (s *Server) handleHome() http.HandlerFunc {
@@ -84,8 +95,41 @@ func (s *Server) handleRegister() http.HandlerFunc {
 }
 
 func (s *Server) handleLogin() http.HandlerFunc {
+	type loginData struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		// ...
+		req := &loginData{}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+		if req.Username == "" {
+			s.error(w, r, http.StatusBadRequest, errors.New("username required"))
+			return
+		}
+		if req.Password == "" {
+			s.error(w, r, http.StatusBadRequest, errors.New("password required"))
+			return
+		}
+		u, err := s.store.User().FindByEmailOrNick(req.Username)
+		if err != nil || !u.ComparePassword(req.Password) {
+			s.error(w, r, http.StatusUnauthorized, errors.New("incorrect username or password"))
+			return
+		}
+		u.Sanitize()
+
+		token, err := CreateJWT(u.ID)
+		if err != nil {
+			s.error(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		respData := struct {
+			*model.User
+			Token string `json:"token"`
+		}{u, token}
+		s.respond(w, r, http.StatusOK, respData)
 	}
 }
 
@@ -100,12 +144,39 @@ func (s *Server) error(w http.ResponseWriter, r *http.Request, code int, err err
 }
 
 func (s *Server) respond(w http.ResponseWriter, r *http.Request, code int, data interface{}) {
+
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
 	if data != nil {
 		if err := json.NewEncoder(w).Encode(data); err != nil {
 			s.logger.Error("Unable to encode server response!")
 		}
 	}
+}
+
+// Middlewares
+
+func (s *Server) authRequiredJWT(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		authHeader := r.Header.Get("Authorization")
+
+		if authHeader == "" {
+			s.error(w, r, http.StatusUnauthorized, errors.New("not authenticated"))
+			return
+		}
+		authHeaderSplit := strings.Split(authHeader, " ")
+		if len(authHeaderSplit) != 2 {
+			s.error(w, r, http.StatusUnauthorized, errors.New("not authenticated"))
+			return
+		}
+		userID, err := ParseJWT(authHeaderSplit[1])
+		if err != nil {
+			s.error(w, r, http.StatusForbidden, errors.New("incorrect token"))
+			return
+		}
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), contextKeyUserID, userID)))
+	})
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

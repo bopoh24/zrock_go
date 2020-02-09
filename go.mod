@@ -3,6 +3,7 @@ module github.com/bopoh24/zrock_go
 go 1.13
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/go-ozzo/ozzo-validation/v3 v3.8.1
 	github.com/gorilla/handlers v1.4.2

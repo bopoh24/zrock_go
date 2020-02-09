@@ -1,4 +1,4 @@
-package apiserver
+package settings
 
 import (
 	"log"
@@ -6,20 +6,17 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
-// Config contains server configuration
-type Config struct {
+// App global apps settings
+var App struct {
 	BindAdd     string `envconfig:"BIND_ADDR" default:":8080"`
 	LogLevel    string `envconfig:"LOG_LEVEL" default:"debug"`
 	DatabaseURL string `envconfig:"DATABASE_URL" default:"host=localhost user=postgres dbname=zrock_api_dev sslmode=disable"`
+	TokenSecret string `envconfig:"TOKEN_SECRET" default:"my_token_secret_string"`
 }
 
-// NewConfig returns Config
-func NewConfig() *Config {
-	config := &Config{}
-	// Reading config from env
-	err := envconfig.Process("ZROCK", config)
+func init() {
+	err := envconfig.Process("ZROCK", &App)
 	if err != nil {
 		log.Fatal("Config initialization failed. ERROR:", err.Error())
 	}
-	return config
 }
