@@ -1,12 +1,13 @@
 package model
 
 import (
+	"regexp"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
-	validation "github.com/go-ozzo/ozzo-validation/v3"
-	"github.com/go-ozzo/ozzo-validation/v3/is"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 // User model
@@ -39,9 +40,12 @@ func (u *User) BeforeCreate() error {
 func (u *User) Validate() error {
 	return validation.ValidateStruct(u,
 		validation.Field(&u.Email, validation.Required, is.Email),
-		validation.Field(&u.Nickname, validation.Required, validation.Length(3, 32)),
+		validation.Field(&u.Nickname, validation.Required, validation.Length(3, 32),
+			validation.Match(regexp.MustCompile("^[a-zA-Z0-9_]+$")).Error("only latin letters, numbers and underscores are allowed")),
 		validation.Field(&u.FirstName, validation.Required, validation.Length(2, 32)),
-		validation.Field(&u.Password, validation.By(requiredIf(u.EncryptedPassword == "")), validation.Length(6, 40)))
+		validation.Field(&u.Password, validation.By(requiredIf(u.EncryptedPassword == "")),
+			validation.Length(6, 40),
+			validation.Match(regexp.MustCompile(`^[^\s\r\n]+$`)).Error("space is not allowed")))
 }
 
 // ComparePassword checks if user password is correct

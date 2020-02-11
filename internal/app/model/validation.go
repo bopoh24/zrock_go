@@ -1,6 +1,6 @@
 package model
 
-import validation "github.com/go-ozzo/ozzo-validation/v3"
+import validation "github.com/go-ozzo/ozzo-validation/v4"
 
 func requiredIf(cond bool) validation.RuleFunc {
 	return func(value interface{}) error {

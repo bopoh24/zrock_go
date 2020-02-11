@@ -81,6 +81,15 @@ func TestUser_Validate(t *testing.T) {
 			isValid: false,
 		},
 		{
+			name: "nick with unallowed symbols",
+			u: func() *User {
+				u := UserFixture()
+				u.Nickname = "!!!cool!!!"
+				return u
+			},
+			isValid: false,
+		},
+		{
 			name: "no name",
 			u: func() *User {
 				u := UserFixture()

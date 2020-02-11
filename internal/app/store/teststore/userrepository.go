@@ -1,8 +1,6 @@
 package teststore
 
 import (
-	"log"
-
 	"github.com/bopoh24/zrock_go/internal/app/model"
 	"github.com/bopoh24/zrock_go/internal/app/store"
 )
@@ -28,7 +26,6 @@ func (r *UserRepository) Create(u *model.User) error {
 }
 
 func (r *UserRepository) checkEmailAndNickFree(u *model.User) error {
-	log.Print(r.users)
 	for _, user := range r.users {
 
 		if u.Email == user.Email {

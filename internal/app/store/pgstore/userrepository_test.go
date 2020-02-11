@@ -33,7 +33,6 @@ func TestUserRepository_FindByPk(t *testing.T) {
 	assert.Nil(t, user)
 	u := model.UserFixture()
 	s.User().Create(u)
-	print(u)
 	user, err = s.User().FindByPk(u.ID)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)

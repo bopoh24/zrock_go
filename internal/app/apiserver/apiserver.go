@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/bopoh24/zrock_go/internal/app/model"
@@ -73,7 +74,7 @@ func (s *Server) handleRegister() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req := &registerData{}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			s.error(w, r, http.StatusBadRequest, err)
+			s.error(w, r, http.StatusBadRequest, JSONDecodeError)
 			return
 		}
 		u := &model.User{
@@ -84,7 +85,7 @@ func (s *Server) handleRegister() http.HandlerFunc {
 			LastName:  req.LastName,
 		}
 		if err := s.store.User().Create(u); err != nil {
-			s.error(w, r, http.StatusUnprocessableEntity, err)
+			s.error(w, r, http.StatusBadRequest, err)
 			return
 		}
 		u.Sanitize()
@@ -95,27 +96,19 @@ func (s *Server) handleRegister() http.HandlerFunc {
 }
 
 func (s *Server) handleLogin() http.HandlerFunc {
-	type loginData struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		req := &loginData{}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			s.error(w, r, http.StatusBadRequest, JSONDecodeError)
+			return
+		}
+		if err := req.validate(); err != nil {
 			s.error(w, r, http.StatusBadRequest, err)
-			return
-		}
-		if req.Username == "" {
-			s.error(w, r, http.StatusBadRequest, errors.New("username required"))
-			return
-		}
-		if req.Password == "" {
-			s.error(w, r, http.StatusBadRequest, errors.New("password required"))
 			return
 		}
 		u, err := s.store.User().FindByEmailOrNick(req.Username)
 		if err != nil || !u.ComparePassword(req.Password) {
-			s.error(w, r, http.StatusUnauthorized, errors.New("incorrect username or password"))
+			s.error(w, r, http.StatusUnauthorized, ErrUsernameOrPassword)
 			return
 		}
 		u.Sanitize()
@@ -140,11 +133,14 @@ func (s *Server) handlePrivate() http.HandlerFunc {
 }
 
 func (s *Server) error(w http.ResponseWriter, r *http.Request, code int, err error) {
-	s.respond(w, r, code, map[string]string{"error": err.Error()})
+	if reflect.TypeOf(err).String() == "*errors.errorString" {
+		s.respond(w, r, code, map[string]string{"error": err.Error()})
+	} else {
+		s.respond(w, r, code, map[string]interface{}{"error": err})
+	}
 }
 
 func (s *Server) respond(w http.ResponseWriter, r *http.Request, code int, data interface{}) {
-
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
 	if data != nil {

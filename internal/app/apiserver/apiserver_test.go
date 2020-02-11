@@ -33,6 +33,7 @@ func TestServer_handleRegister(t *testing.T) {
 	testCases := []struct {
 		name         string
 		payload      interface{}
+		errorText    string
 		expectedCode int
 	}{
 		{
@@ -41,8 +42,8 @@ func TestServer_handleRegister(t *testing.T) {
 				"email":      "user@example.org",
 				"password":   "Password1",
 				"nickname":   "cool_hacker",
-				"first_name": "Alexander",
-				"last_name":  "Voronin",
+				"first_name": "John",
+				"last_name":  "Doe",
 			},
 			expectedCode: http.StatusCreated,
 		},
@@ -50,13 +51,59 @@ func TestServer_handleRegister(t *testing.T) {
 			name:         "invalid payload",
 			payload:      "",
 			expectedCode: http.StatusBadRequest,
+			errorText:    "incorrect JSON recieved",
 		},
 		{
-			name: "invalid params",
+			name: "invalid email",
 			payload: map[string]string{
-				"email": "invalid",
+				"email":      "invalid",
+				"password":   "Password1",
+				"nickname":   "cool_hacker",
+				"first_name": "John",
 			},
-			expectedCode: http.StatusUnprocessableEntity,
+			expectedCode: http.StatusBadRequest,
+			errorText:    "must be a valid email address",
+		},
+		{
+			name: "no email",
+			payload: map[string]string{
+				"password":   "Password1",
+				"nickname":   "cool_hacker",
+				"first_name": "John",
+			},
+			expectedCode: http.StatusBadRequest,
+			errorText:    `"email":"cannot be blank"`,
+		},
+		{
+			name: "no nickname",
+			payload: map[string]string{
+				"email":      "user@example.org",
+				"password":   "Password1",
+				"first_name": "John",
+			},
+			expectedCode: http.StatusBadRequest,
+			errorText:    `"nickname":"cannot be blank"`,
+		},
+		{
+			name: "no first name",
+			payload: map[string]string{
+				"email":    "user@example.org",
+				"nickname": "cool_hacker",
+				"password": "Password1",
+			},
+			expectedCode: http.StatusBadRequest,
+			errorText:    `"first_name":"cannot be blank"`,
+		},
+		{
+			name: "incorrect symbols in nickname",
+			payload: map[string]string{
+				"email":      "user@example.org",
+				"nickname":   "cool hacker!!!",
+				"password":   "Password1",
+				"first_name": "John",
+			},
+			expectedCode: http.StatusBadRequest,
+			errorText:    "only latin letters, numbers and underscores are allowed",
 		},
 	}
 	for _, tc := range testCases {
@@ -67,6 +114,9 @@ func TestServer_handleRegister(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodPost, "/api/auth/register", b)
 			srv.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
+			if tc.errorText != "" {
+				assert.Contains(t, rec.Body.String(), tc.errorText)
+			}
 		})
 	}
 }
@@ -89,6 +139,7 @@ func TestServer_handleLogin(t *testing.T) {
 		{
 			name:         "no data",
 			payload:      "",
+			errorText:    "incorrect JSON recieved",
 			expectedCode: http.StatusBadRequest,
 		},
 		{
@@ -96,7 +147,7 @@ func TestServer_handleLogin(t *testing.T) {
 			payload: map[string]string{
 				"password": "Password1",
 			},
-			errorText:    "username required",
+			errorText:    "cannot be blank",
 			expectedCode: http.StatusBadRequest,
 		},
 		{
@@ -104,7 +155,7 @@ func TestServer_handleLogin(t *testing.T) {
 			payload: map[string]string{
 				"username": "User123",
 			},
-			errorText:    "password required",
+			errorText:    "cannot be blank",
 			expectedCode: http.StatusBadRequest,
 		},
 		{
@@ -118,8 +169,6 @@ func TestServer_handleLogin(t *testing.T) {
 		},
 	}
 
-	respBody := make(map[string]string)
-
 	for _, tc := range badTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
@@ -128,10 +177,7 @@ func TestServer_handleLogin(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodPost, "/api/auth/login", b)
 			srv.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
-			if tc.errorText != "" {
-				json.Unmarshal(rec.Body.Bytes(), &respBody)
-				assert.Equal(t, tc.errorText, respBody["error"])
-			}
+			assert.Contains(t, rec.Body.String(), tc.errorText)
 		})
 	}
 

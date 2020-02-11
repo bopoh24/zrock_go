@@ -5,8 +5,8 @@ github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumC
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/go-ozzo/ozzo-validation v3.6.0+incompatible h1:msy24VGS42fKO9K1vLz82/GeYW1cILu7Nuuj1N3BBkE=
 github.com/go-ozzo/ozzo-validation v3.6.0+incompatible/go.mod h1:gsEKFIVnabGBt6mXmxK0MoFy+cZoTJY6mu5Ll3LVLBU=
-github.com/go-ozzo/ozzo-validation/v3 v3.8.1 h1:PcDzf3lgoWlFW8cxEpqD04zmRczXjn1CUN/AFPUJZK8=
-github.com/go-ozzo/ozzo-validation/v3 v3.8.1/go.mod h1:Bf9HRAgaSCiSPUJ6ueMChbSdCWKeAH4pyW3jctEGwGU=
+github.com/go-ozzo/ozzo-validation/v4 v4.1.0 h1:dAe19IuY/3L/B7x/ddylhVmUUWV3nYEkOb+GcUzOzgQ=
+github.com/go-ozzo/ozzo-validation/v4 v4.1.0/go.mod h1:cQmT+ki0c76Pk/pd0QohBsQ6BcqjeMM7Nkxi/kEdzAA=
 github.com/gorilla/handlers v1.4.2 h1:0QniY0USkHQ1RGCLfKxeNHK9bkDHGRYGNDFBCS+YARg=
 github.com/gorilla/handlers v1.4.2/go.mod h1:Qkdc/uu4tH4g6mTK6auzZ766c4CA0Ng8+o/OAirnOIQ=
 github.com/gorilla/mux v1.7.3 h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=
