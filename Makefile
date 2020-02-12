@@ -1,4 +1,9 @@
-.PHONY: build
+.PHONY: run
+run: migrate swag build 
+migrate:
+	migrate -path migrations -database postgres://postgres@localhost/zrock_api_dev?sslmode=disable up
+swag:
+	swag init -g ./cmd/zrock_api/main.go -o ./api
 build:
 	go build -v ./cmd/zrock_api
 
@@ -12,5 +17,5 @@ execute_tests:
 
 
 
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := run
 

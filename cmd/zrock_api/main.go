@@ -7,11 +7,10 @@ import (
 
 	"github.com/bopoh24/zrock_go/internal/app/apiserver"
 	"github.com/bopoh24/zrock_go/internal/app/settings"
-	"github.com/bopoh24/zrock_go/internal/app/store"
 	"github.com/bopoh24/zrock_go/internal/app/store/pgstore"
 )
 
-func initDbStore() (store.IfaceStore, *sql.DB, error) {
+func initDbStore() (*pgstore.Store, *sql.DB, error) {
 	db, err := sql.Open("postgres", settings.App.DatabaseURL)
 	if err != nil {
 		return nil, nil, err
@@ -22,13 +21,27 @@ func initDbStore() (store.IfaceStore, *sql.DB, error) {
 	return pgstore.New(db), db, nil
 }
 
+// @title Zrock API
+// @version 1.0
+// @description Zrock REST API Server.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @host localhost:8080
+// @BasePath /api/v1
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
 func main() {
 	store, db, err := initDbStore()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
-
 	srv := apiserver.NewServer(store)
+
 	http.ListenAndServe(settings.App.BindAdd, srv)
 }

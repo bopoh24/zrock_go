@@ -1,0 +1,145 @@
+basePath: /api/v1
+definitions:
+  apiserver.errorResp:
+    properties:
+      error:
+        type: object
+    type: object
+  apiserver.loginData:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  apiserver.loginResponseData:
+    properties:
+      avatar:
+        type: string
+      created:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_login:
+        type: string
+      last_name:
+        type: string
+      nickname:
+        type: string
+      password:
+        type: string
+      token:
+        type: string
+    type: object
+  apiserver.registerData:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      nickname:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Zrock REST API Server.
+  license: {}
+  termsOfService: http://swagger.io/terms/
+  title: Zrock API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: main page for anonimous access
+      operationId: main-page
+      produces:
+      - text/html
+      responses:
+        "200": {}
+      summary: Main page
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: User login method
+      operationId: login
+      parameters:
+      - description: Login data
+        in: body
+        name: JSON
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.loginData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiserver.loginResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResp'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apiserver.errorResp'
+      summary: Login
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: New user registration method
+      operationId: registration
+      parameters:
+      - description: Register data
+        in: body
+        name: JSON
+        required: true
+        schema:
+          $ref: '#/definitions/apiserver.registerData'
+      produces:
+      - application/json
+      responses:
+        "201": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiserver.errorResp'
+      summary: Registration
+  /private:
+    get:
+      consumes:
+      - application/json
+      description: returns user ID in greating
+      operationId: private-page
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "401": {}
+      security:
+      - Bearer: []
+      summary: Private page for authenticated users only
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
