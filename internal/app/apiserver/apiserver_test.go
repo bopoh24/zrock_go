@@ -26,7 +26,7 @@ func TestServer_handleRegister(t *testing.T) {
 	srv := NewServer(teststore.New())
 	rec := httptest.NewRecorder()
 	// check StatusMethodNotAllowed
-	req, _ := http.NewRequest(http.MethodGet, "/api/auth/register", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/api/v1/auth/register", nil)
 	srv.ServeHTTP(rec, req)
 	assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
 
@@ -111,7 +111,7 @@ func TestServer_handleRegister(t *testing.T) {
 			rec := httptest.NewRecorder()
 			b := &bytes.Buffer{}
 			json.NewEncoder(b).Encode(tc.payload)
-			req, _ := http.NewRequest(http.MethodPost, "/api/auth/register", b)
+			req, _ := http.NewRequest(http.MethodPost, "/api/v1/auth/register", b)
 			srv.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
 			if tc.errorText != "" {
@@ -126,7 +126,7 @@ func TestServer_handleLogin(t *testing.T) {
 	srv := NewServer(teststore.New())
 	rec := httptest.NewRecorder()
 	// check StatusMethodNotAllowed
-	req, _ := http.NewRequest(http.MethodGet, "/api/auth/login", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/api/v1/auth/login", nil)
 	srv.ServeHTTP(rec, req)
 	assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
 
@@ -174,7 +174,7 @@ func TestServer_handleLogin(t *testing.T) {
 			rec := httptest.NewRecorder()
 			b := &bytes.Buffer{}
 			json.NewEncoder(b).Encode(tc.payload)
-			req, _ := http.NewRequest(http.MethodPost, "/api/auth/login", b)
+			req, _ := http.NewRequest(http.MethodPost, "/api/v1/auth/login", b)
 			srv.ServeHTTP(rec, req)
 			assert.Equal(t, tc.expectedCode, rec.Code)
 			assert.Contains(t, rec.Body.String(), tc.errorText)
@@ -213,7 +213,7 @@ func TestServer_handleLogin(t *testing.T) {
 			rec := httptest.NewRecorder()
 			b := &bytes.Buffer{}
 			json.NewEncoder(b).Encode(tc.payload)
-			req, _ := http.NewRequest(http.MethodPost, "/api/auth/login", b)
+			req, _ := http.NewRequest(http.MethodPost, "/api/v1/auth/login", b)
 			srv.ServeHTTP(rec, req)
 			assert.Equal(t, http.StatusOK, rec.Code)
 			assert.Contains(t, rec.Body.String(), "token")
