@@ -57,3 +57,51 @@ func TestUserRepository_FindByEmailOrNick(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 }
+
+func TestVerifyEmail(t *testing.T) {
+	uFixture := model.UserFixture()
+	s := New()
+	s.User().Create(uFixture)
+	testCases := []struct {
+		name             string
+		email            string
+		verificationCode string
+		errorExpected    bool
+	}{
+		{
+			name:             "incorrect email and code",
+			email:            "",
+			verificationCode: "",
+			errorExpected:    true,
+		},
+		{
+			name:             "incorrect email",
+			email:            "",
+			verificationCode: uFixture.EmailVerificationCode,
+			errorExpected:    true,
+		},
+		{
+			name:             "incorrect code",
+			email:            uFixture.Email,
+			verificationCode: "",
+			errorExpected:    true,
+		},
+		{
+			name:             "correct email and code",
+			email:            uFixture.Email,
+			verificationCode: uFixture.EmailVerificationCode,
+			errorExpected:    false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := s.User().VerifyEmail(tc.email, tc.verificationCode)
+			if tc.errorExpected {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

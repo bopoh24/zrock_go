@@ -24,8 +24,8 @@ func (r *UserRepository) Create(u *model.User) error {
 		return err
 	}
 	if err := r.store.db.QueryRow(
-		"INSERT INTO users (email, nickname, first_name, last_name, enpass) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-		u.Email, u.Nickname, u.FirstName, u.LastName, u.EncryptedPassword,
+		"INSERT INTO users (email, nickname, first_name, last_name, enpass, email_verification_code) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		u.Email, u.Nickname, u.FirstName, u.LastName, u.EncryptedPassword, u.EmailVerificationCode,
 	).Scan(&u.ID); err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (r *UserRepository) checkEmailAndNickFree(u *model.User) error {
 	return nil
 }
 
-// Find find user by ID
+// FindByPk find user by ID
 func (r *UserRepository) FindByPk(userID int) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
@@ -62,13 +62,29 @@ func (r *UserRepository) FindByPk(userID int) (*model.User, error) {
 func (r *UserRepository) FindByEmailOrNick(word string) (*model.User, error) {
 	u := &model.User{}
 	if err := r.store.db.QueryRow(
-		"SELECT id, email, nickname, first_name, last_name, avatar, last_login, enpass from users WHERE email = $1 or nickname = $1",
+		"SELECT id, email, email_verified, nickname, first_name, last_name, avatar, last_login, enpass from users WHERE email = $1 or nickname = $1",
 		word,
-	).Scan(&u.ID, &u.Email, &u.Nickname, &u.FirstName, &u.LastName, &u.Avatar, &u.LastLogin, &u.EncryptedPassword); err != nil {
+	).Scan(&u.ID, &u.Email, &u.EmailVerified, &u.Nickname, &u.FirstName, &u.LastName, &u.Avatar, &u.LastLogin, &u.EncryptedPassword); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.ErrRecordNotFound
 		}
 		return nil, err
 	}
 	return u, nil
+}
+
+// VerifyEmail makes email verification
+func (r *UserRepository) VerifyEmail(email string, verificationCode string) error {
+	res, err := r.store.db.Exec("UPDATE users set email_verified=true where email=$1 and email_verification_code=$2", email, verificationCode)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return store.ErrRecordNotFound
+	}
+	return nil
 }

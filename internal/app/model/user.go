@@ -8,20 +8,23 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/google/uuid"
 )
 
 // User model
 type User struct {
-	ID                int        `json:"id"`
-	Email             string     `json:"email"`
-	Password          string     `json:"password,omitempty"`
-	EncryptedPassword string     `json:"-"`
-	Nickname          string     `json:"nickname"`
-	FirstName         string     `json:"first_name"`
-	LastName          string     `json:"last_name,omitempty"`
-	Avatar            string     `json:"avatar,omitempty"`
-	LastLogin         *time.Time `json:"last_login,omitempty"`
-	Created           *time.Time `json:"created,omitempty"`
+	ID                    int        `json:"id"`
+	Email                 string     `json:"email"`
+	EmailVerified         bool       `json:"-"`
+	EmailVerificationCode string     `json:"-"`
+	Password              string     `json:"password,omitempty"`
+	EncryptedPassword     string     `json:"-"`
+	Nickname              string     `json:"nickname"`
+	FirstName             string     `json:"first_name"`
+	LastName              string     `json:"last_name,omitempty"`
+	Avatar                string     `json:"avatar,omitempty"`
+	LastLogin             *time.Time `json:"last_login,omitempty"`
+	Created               *time.Time `json:"created,omitempty"`
 }
 
 // BeforeCreate before user model create
@@ -32,6 +35,8 @@ func (u *User) BeforeCreate() error {
 			return err
 		}
 		u.EncryptedPassword = enc
+		u.EmailVerified = false
+		u.EmailVerificationCode = uuid.New().String()
 	}
 	return nil
 }

@@ -7,4 +7,5 @@ type UserRepository interface {
 	Create(*model.User) error
 	FindByPk(int) (*model.User, error)
 	FindByEmailOrNick(string) (*model.User, error)
+	VerifyEmail(string, string) error
 }

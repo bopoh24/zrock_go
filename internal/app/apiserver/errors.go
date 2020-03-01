@@ -12,5 +12,6 @@ func (e *usernameError) Error() string {
 
 var (
 	ErrUsernameOrPassword = &usernameError{"incorrect username or password"}
+	ErrEmailNotVerified   = &usernameError{"email not verified"}
 	JSONDecodeError       = errors.New("incorrect JSON recieved")
 )

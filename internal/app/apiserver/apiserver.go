@@ -140,6 +140,10 @@ func (s *Server) handleLogin() http.HandlerFunc {
 			s.error(w, r, http.StatusUnauthorized, ErrUsernameOrPassword)
 			return
 		}
+		if !u.EmailVerified {
+			s.error(w, r, http.StatusUnauthorized, ErrEmailNotVerified)
+			return
+		}
 		u.Sanitize()
 
 		token, err := CreateJWT(u.ID)

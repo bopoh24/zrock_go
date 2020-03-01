@@ -181,13 +181,26 @@ func TestServer_handleLogin(t *testing.T) {
 		})
 	}
 
-	//Valid credentials
+	// Valid credentials
 	user := model.UserFixture()
 	user.Email = "name@mail.com"
 	user.Password = "Password1"
 	user.Nickname = "JohnDoe"
 	srv.store.User().Create(user)
 
+	// email not verified
+	rec = httptest.NewRecorder()
+	b := &bytes.Buffer{}
+	json.NewEncoder(b).Encode(map[string]string{
+		"username": user.Email,
+		"password": user.Password,
+	})
+	req, _ = http.NewRequest(http.MethodPost, "/api/v1/auth/login", b)
+	srv.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+	assert.Contains(t, rec.Body.String(), "email not verified")
+
+	srv.store.User().VerifyEmail(user.Email, user.EmailVerificationCode)
 	goodTestCases := []struct {
 		name    string
 		payload map[string]string

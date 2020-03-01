@@ -10,6 +10,8 @@ func TestUser_BeforeCreate(t *testing.T) {
 	u := UserFixture()
 	assert.NoError(t, u.BeforeCreate())
 	assert.NotEmpty(t, u.EncryptedPassword)
+	assert.NotEmpty(t, u.EmailVerificationCode)
+	assert.False(t, u.EmailVerified)
 }
 
 func TestUser_Validate(t *testing.T) {

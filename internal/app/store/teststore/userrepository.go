@@ -55,3 +55,14 @@ func (r *UserRepository) FindByEmailOrNick(word string) (*model.User, error) {
 	}
 	return nil, store.ErrRecordNotFound
 }
+
+// VerifyEmail makes email verification
+func (r *UserRepository) VerifyEmail(email string, verificationCode string) error {
+	for i, u := range r.users {
+		if u.Email == email && u.EmailVerificationCode == verificationCode {
+			r.users[i].EmailVerified = true
+			return nil
+		}
+	}
+	return store.ErrRecordNotFound
+}
